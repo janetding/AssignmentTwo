@@ -1,0 +1,48 @@
+#!/bin/sh
+##
+# This script implements the arithmetic logic unit (ALU)
+# for word-oriented arithmetic and logic operations
+
+# directory of this script
+dir="$(dirname $0)"
+
+# include word definitions
+source "$dir/worddefs"
+
+##
+# calls 'word' command on same path as this script
+word() { echo $($dir/word $*); }
+
+##
+# Output usage message to standard error
+usage() {
+    echo "usage: $(basename $0) [op word ...]" 1>&2
+    echo "word is a ${wordsize}-bit word, or a unsigned hex (0x1A2F) or decimal number" 1>&2
+}
+
+##
+# Difference of two word operands.
+# @param the first opearand
+# @param the second operand
+# @return the difference
+sub() {
+    local carry=1
+    local result=$zeroword
+    for ((b=0; b <= $wordtopbit; b++)); do
+        local t=$(( $(word $1 $b) + $(notBit $(word $2 $b)) + carry))
+        carry=$((t>>1)) # bit 1 is carry bit
+        result=$(word $result $b $t) # word uses only lower bit of t
+    done
+    echo $result
+}
+
+# dispatch message to alu function
+case $1 in
+sub) 
+    echo $(sub $2 $3)
+    ;;
+*)
+    usage
+    ;;
+esac
+
